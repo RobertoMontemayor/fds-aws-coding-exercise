@@ -55,7 +55,7 @@ const createSubscription = async (body)=>{
 }
 
 const cancelSubscription = async(body)=>{
-    const { userId, subscriptionId, expiresAt } = body
+    const { userId, subscriptionId, expiresAt, timestamp } = body
 
     if(!userId || !subscriptionId){
         throw new AppError(400, 'Missing required fields')
@@ -68,7 +68,7 @@ const cancelSubscription = async(body)=>{
     }
 
     //update subscription status
-    const now = new Date()
+    const now = new Date(timestamp)
     const expireDate = new Date(expiresAt)
     const updateParams = {
         TableName: TABLE_NAME,
@@ -76,13 +76,15 @@ const cancelSubscription = async(body)=>{
         UpdateExpression: `
             SET canceledAt = :canceledAt,
                 lastModifiedAt = :lastModifiedAt,
-                #st = :status
+                #st = :status,
+                expiresAt = :expiresAt
         `,
         ExpressionAttributeNames: {"#st" : "status"},
         ExpressionAttributeValues: {
             ":canceledAt": now.toISOString(),
             ":lastModifiedAt": now.toISOString(),
-            ":status": now < expireDate ? 'PENDING' : 'CANCELED'
+            ":status": now < expireDate ? 'PENDING' : 'CANCELED',
+            ":expiresAt": expiresAt
         },
         ConditionExpression: "attribute_exists(pk) AND attribute_exists(sk)",
         ReturnValues: "ALL_NEW"
@@ -92,7 +94,7 @@ const cancelSubscription = async(body)=>{
 }
 
 const renewSubscription = async(body) =>{
-    const { userId, subscriptionId, expiresAt } = body
+    const { userId, subscriptionId, expiresAt, timestamp } = body
 
     //validate subscription exists
     if(!userId || !subscriptionId){
@@ -106,7 +108,7 @@ const renewSubscription = async(body) =>{
     }
 
     //update subscription status
-    const now = new Date().toISOString()
+    const now = timestamp
 
     const updateParams = {
         TableName: TABLE_NAME,
