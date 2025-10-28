@@ -22,7 +22,7 @@ const router = async (event) => {
             const isB64 = !!event?.isBase64Encoded;
             const text = isB64 ? Buffer.from(raw, 'base64').toString('utf8') : raw;
 
-            const parsedBody =  JSON.parse(text || '{}')
+            const parsedBody =  isB64 ? JSON.parse(text || '{}') : text
             if(!parsedBody){
                 throw new AppError(400, 'Missing body!')
             }

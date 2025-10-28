@@ -25,7 +25,7 @@ export const getUserSubscription = async(userId, subscriptionId = null, includeI
     }
 
     const subscription = subscriptionResponse.Items[0]
-    if(subscriptionId & subscriptionId !== subscription.pk){
+    if(subscriptionId !== subscription.sk){
         throw  new AppError(400, 'User subscription mismatch')
     }
     
